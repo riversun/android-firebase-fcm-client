@@ -23,8 +23,12 @@ package org.riversun.recvfcm;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 /**
  * Service for sending this device's registrationToken to your server to remember it.
@@ -39,12 +43,26 @@ public class FcmTokenRegistrationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        final String regToken = FirebaseInstanceId.getInstance().getToken();
 
-        Logg.d("Firebase registrationToken=" + regToken);
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
 
-        //TODO register token to your server.
+                            Logg.d("Firebase getInstanceId failed " + task.getException());
+                            return;
+                        }
 
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+
+                        Logg.d("Firebase registrationToken=" + token);
+
+                        //TODO register token to your server.
+
+                    }
+                });
     }
 
 
